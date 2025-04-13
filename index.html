@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>GPS 打卡</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 2rem; }
+    .status { margin-top: 1.5rem; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>📍 正在打卡中...</h2>
+  <div id="status">正在取得位置與資訊...</div>
+
+  <script>
+    const getParam = name => new URLSearchParams(location.search).get(name);
+    const name = getParam("name");
+    const contact = getParam("contact");
+    const statusEl = document.getElementById("status");
+
+    if (!name || !contact) {
+      statusEl.innerText = "❌ 缺少必要參數（name 或 contact）";
+    } else {
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+
+          fetch("https://script.google.com/macros/s/AKfycbyzaEaByVh0R1VDWgKmEsPqj8tKeErcRtLaJpJWwPKbY8xA62AKVYBJwOkmVcwv_o0UGw/exec", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, contact, lat, lon })
+          })
+          .then(() => statusEl.innerText = "✅ 打卡成功！請返回")
+          .catch(err => statusEl.innerText = "❌ 發送失敗：" + err.message);
+        },
+        err => {
+          statusEl.innerText = "❌ 取得定位失敗：" + err.message;
+        }
+      );
+    }
+  </script>
+</body>
+</html>
